@@ -1,0 +1,58 @@
+import cv2
+import numpy as np
+from PIL import Image
+
+
+def Encrypt(N, filename):
+    try:
+        img = cv2.imread(filename)
+        print(type(img))
+    except:
+        print('Error with file')
+        exit()
+    final_Share = img.copy()
+    height, width = img.shape[0:2]
+    for i in range(1, N):
+       # Z = np.random.random((height, width))
+       # im = Image.fromarray(Z.astype('uint8')).convert('RGBA')
+        Z = (np.random.standard_normal([height, width, 3]) * 255).astype(np.uint8)
+        im = Image.fromarray(Z)
+        tempFilename = 'share'+str(i)+'.png'
+        im.save(tempFilename)
+        im2 = cv2.imread(tempFilename)
+        final_Share = cv2.bitwise_xor(im2, final_Share, mask=None)
+    tempFilename = 'share'+str(N)+'.png'
+    im = Image.fromarray(final_Share)
+    im.save(tempFilename)
+
+
+def Decrypt(N):
+    filename = 'share'+str(1)+'.png'
+    img = cv2.imread(filename)
+    height, width = img.shape[0:2]
+    for i in range(2, N+1):
+        filename = 'share'+str(i)+'.png'
+        im = cv2.imread(filename)
+        img = cv2.bitwise_xor(img, im, mask=None)
+    filename = 'output.jpg'
+    output = Image.fromarray(img)
+    output.save(filename)
+
+
+def main():
+    print("Welcome to Image Secret Sharing")
+    print("Choose Option")
+    print("1. Encrypt")
+    print("2. Decrypt")
+    choice = int(input())
+    if choice == 1:
+        filename = input('Please Enter the Filename of the Image: ')
+        N = int(input('Enter the number of shares for transmission : '))
+        Encrypt(N, filename)
+    elif choice == 2:
+        N = int(input('Enter the number of shares for transmission : '))
+        Decrypt(N)
+
+
+if __name__ == "__main__":
+    main()
